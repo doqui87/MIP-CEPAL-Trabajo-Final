@@ -1,0 +1,641 @@
+---
+title: "Estructuras productivas y encadenamientos (ARG 1995-2018)"
+subtitle: "Trabajo Final - Curso MIP-CEPAL 2025"
+author: "Guido Ianni (asistido por ChatGPT5)"
+format:
+  html:
+    theme: cosmo
+    toc: true
+    number-sections: true
+    code-fold: true
+    df-print: paged
+execute:
+  freeze: auto
+  echo: true
+  warning: false
+  message: false
+execute-dir: project
+output-file: index.html
+output-dir: docs
+---
+
+# Resumen ejecutivo
+
+Este cuaderno aplica técnicas de análisis insumo-producto para examinar la estructura productiva de **Argentina** entre los años **1995** y **2018**, utilizando las matrices elaboradas por la **OECD**.
+
+Calculamos:
+
+\- **BL** (backward linkages) y **FL** (forward linkages) utilizando la normalización clásica (*Hirschman-Rasmussen*), y su taxonomía (Clave/Impulsor/Impulsado/Independiente).
+
+\- **Multiplicadores de importaciones** del modelo abierto.
+
+\- **Multiplicadores de empleo** del modelo abierto.
+
+Los resultados de los tres sistemas de indicadores se presentan tanto en forma tabular, como en forma gráfica para poder apreciar la evolución de dichos indicadores entre los dos años mencionados.
+
+El cuaderno es **reproducible**: basta con colocar `ARG1995dom.csv`, `ARG2018dom.csv` `tbl_ind.csv`, `EMPN.Rdata`, y `LABR.Rdata` `en `data/raw/`.
+
+------------------------------------------------------------------------
+
+# Introducción:
+
+El punto de partida del análisis consiste en la siguiente representación tabular la matriz insumo-producto
+
+Una matriz insumo–producto (MIP) organiza en forma contable las transacciones interindustriales. Su disposición estándar es la siguiente:
+
++---------------------------------------------+---------------------------------------------+--------------------------------------+----------------------+
+|                                             | **Sectores productivos** ($j=1,\ldots,q_d$) | **Demanda final** ($j=1,\ldots,q_f$) | **Producción total** |
++=============================================+=============================================+======================================+======================+
+| **Sectores productivos** ($i=1,\ldots,q_d$) | $Z$                                         | $F$                                  | $x$                  |
++---------------------------------------------+---------------------------------------------+--------------------------------------+----------------------+
+| **Importaciones\                            | $M$                                         | $M_F$                                | –                    |
+| **($i=1,\ldots,q_d$)                        |                                             |                                      |                      |
++---------------------------------------------+---------------------------------------------+--------------------------------------+----------------------+
+| **Valor agregado**                          | $VA = Y$                                    | –                                    | –                    |
++---------------------------------------------+---------------------------------------------+--------------------------------------+----------------------+
+| **Producción total**                        | $x^\top$                                    | –                                    | $\mathbf{1}^\top x$  |
++---------------------------------------------+---------------------------------------------+--------------------------------------+----------------------+
+
+Donde:\
+- $Z \in \mathbb{R}^{q_d \times q_d}$ es la matriz de transacciones intermedias.\
+- $Y \in \mathbb{R}^{q_d \times q_f}$ es la matriz de componentes de la demanda final.\
+- $x \in \mathbb{R}^{q_d}$ es el vector de producción total por industria.\
+- $v \in \mathbb{R}^{q_d}$ es el vector de valor agregado.\
+- $M$ registra los insumos importados.
+
+## Sistemas básicos de gasto e ingreso
+
+A partir del esquema tabular, se obtienen dos representaciones complementarias de las identidades contables:
+
+### Sistema de gasto (visión por columnas)
+
+La producción total de las industrias se destina a cubrir usos intermedios y demanda final:
+
+$$
+x = Z \mathbf{1}_{q_d} + F \mathbf{1}_{q_f}
+$$
+
+donde:\
+- $\mathbf{1}_{q_d}$ es un vector de unos de dimensión $q_d$,\
+- $\mathbf{1}_{q_f}$ es un vector de unos de dimensión $q_f$.
+
+Aquí $Z \mathbf{1}_{q_d}$ representa el uso intermedio total, y $Y \mathbf{1}_{q_f}$ la demanda final agregada.
+
+### Sistema de ingreso (visión por filas)
+
+Simétricamente, la producción de cada industria se distribuye en ventas intermedias y valor agregado:
+
+$$
+x^\top = \mathbf{1}_{q_d}^\top Z + y^\top
+$$
+
+donde $y$ es el vector de valor agregado sectorial.
+
+------------------------------------------------------------------------
+
+## Normalización en coeficientes unitarios
+
+Para obtener una representación tecnológica, se normaliza la matriz de transacciones $Z$ respecto a la producción sectorial:
+
+### Coeficientes técnicos de insumo (matriz $A$):
+
+$$
+A \equiv Z\,\mathrm{diag}(x)^{-1}
+$$
+
+### Coeficientes de distribución del producto (matriz $B$):
+
+$$
+B \equiv \mathrm{diag}(x)^{-1} Z
+$$
+
+Así, cada elemento $a_{ij}$ de $A$ representa la cantidad de insumos del sector $i$ por unidad de producto del sector $j$, por lo que la matriz $A$ resume los requerimientos intermedios por unidad de producción (modelo de Leontief), mientras que los $b_{ij}$ de $B$ mide el requerimiento total del sector $i$ para satisfacer una unidad adicional de demanda final del sector ($j$), por lo que la matriz $B$ resume la distribución de la producción sectorial hacia los sectores demandantes (modelo de Ghosh).
+
+------------------------------------------------------------------------
+
+### Modelo de Leontief (demanda)
+
+El sistema de gasto puede escribirse como:
+
+$$
+x = Z \mathbf{1}_{q_d} + F \mathbf{1}_{q_f} = Z \mathrm{diag}(x)^{-1} \mathrm{diag}(x) \mathbf{1}_{q_d} + f = A x + f
+$$
+
+Reordenando:
+
+$$
+(I - A) x = f
+$$
+
+y por tanto,
+
+$$
+x = (I - A)^{-1} f
+$$
+
+donde $f$ es el vector de demanda final total, y $(I - A)^{-1}$ es la **inversa de Leontief**.
+
+La inversa de Leontief que captura los requerimientos directos e indirectos de producción por unidad de demanda final y representa el proceso de integración vertical (Sraffa, 1960; Pasinetti, 1977).
+
+### Modelo de Ghosh (oferta)
+
+De manera simétrica, el sistema de ingreso puede escribirse como:
+
+$$
+x^\top = \mathbf{1}_{q_d}^\top \mathrm{diag}(x) \mathrm{diag}(x)^{-1} Z + y = x^\top B + y^\top
+$$
+
+Reordenando:
+
+$$
+x^\top (I - B) = y^\top
+$$
+
+y por tanto,
+
+$$
+x^\top = y^\top (I - B)^{-1}
+$$
+
+donde $(I - B)^{-1}$ es la **inversa de Ghosh**, que describe la distribución de los efectos del valor agregado a lo largo de la red productiva.
+
+## Multiplicadores
+
+Uno de los indicadores de mayor interés en el análisis insumo-producto son los llamados *multiplicadores*. A partir de la matriz inversa de Leontief, es posible calcular multiplicadores que miden los efectos directos e indirectos de un cambio en la demanda final sobre distintos agregados de interés.
+
+### Multiplicador de producción
+
+La inversa de Leontief transforma una unidad de demanda final en producción sectorial:
+
+$$
+x = B f
+$$
+
+De aquí se desprende que la columna $j$-ésima de la inversa de Leontief contiene los niveles de producción bruta (en valor) que activa una unidad de demanda final en el sector $j$. Sigue entonces que la suma por filas o columnas de $(I - A)^{-1}$ mide la expansión de la total producción inducida por la demanda de cada sector. Es decir:
+
+$$
+{\mu^{d}} = \mathbf{1}_{q_d}^\top B
+$$
+
+### Multiplicador de empleo
+
+La metodología insumo producto permite también cuantificar cómo la variación en la demanda final de una sector induce cambios en el empleo total de la economía tomando en cuenta la inderdependencia de los sectores de la economía. En efecto, la producción de mercancías no requiere únicamente emplear los insumos que producen las otras industrias. Uno de los insumos más importantes para la producción es generralmente el trabajo.\
+Sea $a_l \in \mathbb{R}^{q_d}$ el vector de coeficientes laborales, donde cada elemento ${a_l}_i$ representa el número de empleos por unidad de producción del sector $i$. El nivel total de empleo en la economía $L$ satisface por lo tanto la ecuación $L= {a_l}^\top x$ y tenemos que $$
+{\mu^{l}} = {a_l}^\top  B 
+$$ El elemento en la posición $i$ del vector $\mu^l$ contiene lo que podemos denominar los coeficientes de trabajo verticalmente integrado (Pasinetti, 1973). Es decir, las cantidades de trabajo directa e indirectamente incorporado en cada unidad producida del sector $i$.La variación en el empleo atribuible a un cambio en la demanda del sector $i$ de una unidad se corresponden entonces con estos coeficientes de trabajo verticalmente integrados: cada componente $\mu^{l}_i$ mide el empleo total (directo e indirecto) generado en la economía por una unidad adicional de demanda final del sector $i$.
+
+### Multiplicador de importaciones
+
+En una economía abierta no es solo relevante analizar el impacto que induce un cambio en la demanda en la producción total ($\mu^x$) y en el empleo total ($\mu^l$). También lo es considerar cómo varían los flujos de importaciones. Es en este contexto que cobran especial relevancia los denominados *multiplicadores de las importaciones*. De manera simétrica al cálculo de los multiplicadores del empleo, Sea $a_m \in \mathbb{R}^{q_d}$ el vector de coeficientes de importación, con ${a_m}_i$ igual a la proporción de insumos importados por unidad de producción en el sector $i$.\
+Definiendo $M = a_m^\top \mathrm{diag}(x)^{-1}$ como la matriz de coeficientes de importación, se obtiene el multiplicador de importaciones:
+
+$$
+\mu^{imp} = a_m^\top (I - A)^{-1}
+$$
+
+Cada componente $\mu^{imp}_j$ mide las importaciones totales (directas e indirectas) requeridas para sostener una unidad adicional de demanda final del sector $j$. *Nota:* Dado que en la partición de la matriz insumo producto los requerimientos de insumos importados viene desagregado por insumos (es decir, dado que tenemos el bloque $M$), podemos calcular el vector de requerimientos totales de insumos importados realizando el cálculo $a_m^\top=\mathbf{1}_{q_d}^\top M$
+
+------------------------------------------------------------------------
+
+En síntesis:
+
+\- $\mu^{d}$ evalúa los efectos en la producción total inducidos por una variación unitaria en la demanda final,
+
+\- $\mu^{l}$ los efectos producidos sobre el nivel empleo, y
+
+\- $\mu^{m}$ los correspondientes efectos en las importaciones.\
+Cada multiplicador se obtiene aplicando los vectores (fila) de coeficientes correspondientes ($1, a_l, a_m$)a la inversa de Leontief.
+
+## Encadenamientos hacia adelante y hacia atrás
+
+En la sección anterior vimos cómo los **multiplicadores** permiten cuantificar los efectos de un shock en la demanda final sobre distintas magnitudes (producción, empleo, importaciones).\
+Esa lógica es muy útil para responder preguntas del tipo: *“¿cuánto se expande la economía si aumenta la demanda de tal sector?”*.
+
+Sin embargo, los multiplicadores no agotan las posibilidades del análisis insumo–producto. Existe otra tradición que busca responder una pregunta diferente:\
+*¿cuáles son los sectores estructuralmente más importantes dentro de la red productiva, independientemente del tamaño absoluto de la demanda?*
+
+Para eso se desarrollaron los indicadores de **encadenamientos productivos**. Mientras los multiplicadores son herramientas de impacto cuantitativo, los encadenamientos son herramientas de diagnóstico estructural: sirven para identificar *quiénes arrastran* y *quiénes irradian* dentro del sistema.
+
+### Encadenamientos hacia atrás (Backward Linkages, BL)
+
+El punto de partida es nuevamente la inversa de Leontief:
+
+$$
+B = (I - A)^{-1}
+$$
+
+Cada columna de $B$ refleja la cantidad de producción (directa e indirecta) que la economía en su conjunto debe generar para atender una unidad adicional de demanda final en un sector específico.\
+De aquí se desprende la definición de **backward linkage**: la suma de esa columna.
+
+$$
+BL = \mathbf{1}^\top B
+$$ Cada elemento $BL_j$ representa así la producción total que se activa al demandar una unidad monetaria más de demanda final a la industria $j$. Un $BL_j$ elevado significa que el sector $j$ arrastra mucho hacia atrás: depende de una red extensa de proveedores y, al expandirse, hace trabajar a buena parte de la economía.
+
+### Encadenamientos hacia adelante (Forward Linkages, FL)
+
+De forma simétrica, la inversa de Ghosh nos permite mirar la economía desde el lado de la oferta:
+
+$$
+G = (I - D)^{-1}
+$$ Cada fila de $G$ muestra cómo se difunde hacia el resto un aumento en el valor agregado de un sector particular.\
+El **forward linkage** del sector $i$ se obtiene como la suma de esa fila:
+
+$$
+FL = G \mathbf{1}
+$$
+
+Un $FL_i$ elevado significa que el sector $i$ es un gran proveedor: su producción se disemina como insumo hacia adelante, alimentando a muchos otros sectores.
+
+### Normalización de Rasmussen–Hirschman
+
+Los valores brutos de $BL$ y $FL$ no son directamente comparables, ya que dependen de escalas absolutas y del número de sectores.\
+Rasmussen y Hirschman propusieron resolver este problema normalizando cada encadenamiento por el promedio de toda la economía:
+
+$$
+BL_j^n = \frac{BL_j}{\tfrac{1}{q_d}\sum_{k=1}^{q_d} BL_k}, 
+\qquad
+FL_i^n = \frac{FL_i}{\tfrac{1}{q_d}\sum_{k=1}^{q_d} FL_k}.
+$$
+
+Con esta transformación, un valor mayor a 1 indica que el sector está **por encima del promedio**, y un valor menor a 1, que está **por debajo**.\
+De esta manera, los encadenamientos se convierten en **indicadores relativos** que permiten comparar sectores entre sí y también a lo largo del tiempo.
+
+### Taxonomía de Rasmussen–Hirschman
+
+La normalización abre la puerta a una clasificación muy sugerente. Combinando $BL^n$ y $FL^n$, se ubican los sectores en un plano cartesiano y se clasifican en cuatro tipos:
+
+-   **Sectores clave** ($BL^n > 1$, $FL^n > 1$): nodos estratégicos de la red productiva, que arrastran e irradian a la vez.
+-   **Sectores impulsores** ($BL^n > 1$, $FL^n < 1$): demandan insumos intensivamente, pero no son grandes proveedores.
+-   **Sectores impulsados** ($BL^n < 1$, $FL^n > 1$): ofrecen insumos clave, aunque ellos mismos no arrastran demasiado.
+-   **Sectores independientes** ($BL^n < 1$, $FL^n < 1$): ubicados en la periferia de la red, con encadenamientos por debajo de la media en ambos sentidos.
+
+### Lectura estructural
+
+A diferencia de los multiplicadores, que se interpretan como “efectos de impacto”, los encadenamientos funcionan como **mapas de conectividad**. Un sector pequeño en valor absoluto puede ser revelado como **estratégico** si exhibe encadenamientos altos; del mismo modo, un sector grande puede resultar estructuralmente poco influyente si sus encadenamientos son bajos.
+
+En suma, los indicadores de BL y FL —y en particular la taxonomía de Rasmussen–Hirschman— ofrecen una radiografía de la **posición estructural** de cada sector dentro del entramado productivo. 
+
+# Resultados
+
+La implementación práctica de los indicadores se realizó utilizando el orquestador que integra todos los módulos del proyecto. Este pipeline carga las matrices de la OECD, construye los objetos por año, calcula multiplicadores y encadenamientos, y finalmente genera tablas y gráficos listos para exportar.
+
+## Configuración
+
+Iniciamos configurando el cuaderno:
+
+```{r}
+#| label: config
+#| message: false
+#| warning: false
+#| echo: true
+
+# Paquetes (asume renv::restore() ya corrido)
+suppressPackageStartupMessages({
+  library(here); library(dplyr); library(tidyr); library(ggplot2); library(ggrepel)
+})
+
+# Parámetros del análisis
+cfg <- list(
+  country = "ARG",                         # Pais escogido
+  years   = c(1995, 2018),                 # Años para comparar
+  paths   = list(
+    root   = here::here(),                  # cwd() del proyecto 
+    raw    = here::here("data","raw"),     # Dir de archivos con la data
+    figs   = here::here("figs"),           # Donde exportar figuras
+    tables = here::here("tables"),         # Donde exportar tablas
+    rmods  = here::here("R")               # Ubicacion de de los modulos
+  ),
+  viz = list(width = 8, height = 5, dpi = 300)
+)
+
+# Crear carpetas de salida si faltan
+for (p in cfg$paths[c("figs","tables")]) if (!dir.exists(p)) dir.create(p, recursive = TRUE)
+
+
+# Sourcing de módulos
+modules <- c(
+  "io_utils.R","io_load.R","io_build.R","io_linkages.R",
+  "io_multipliers.R","io_vertical.R","io_tables.R",
+  "io_plots.R","io_export.R","io_orchestrator.R"
+)
+for (mod in modules) source(file.path(cfg$paths$rmods, mod))
+```
+
+------------------------------------------------------------------------
+
+## Ejecutar el pipeline
+
+Una vez que tenemos todo configurado, corremos todo el pipeline.
+
+\- Las tablas generadas (ver más abajo) se guardan automáticamente en `/restults/tables`\
+- Los gráficos generados (idem) se guardan automáticamente en `/restults/figs`
+
+```{r}
+#| label: run-orchestration
+#| message: false
+#| warning: false
+
+res <- run_orchestration(
+  country = cfg$country,
+  years   = cfg$years,
+  paths   = cfg$paths
+)
+
+# Desempaquetar para uso local en el cuaderno
+results            <- res$results
+linkages_stack     <- res$linkages_stack
+multipliers_stack  <- res$multipliers_stack
+vi_stack           <- res$vi_stack
+plots              <- res$plots
+```
+
+## Tablas
+
+### Forward y Backward Linkages (ambos años)
+
+```{r}
+#| label: table-blfl
+#| message: false
+#| warning: false
+
+# BL/FL normalizados + taxonomía (muestra)
+linkages_stack |>
+  arrange(year, sector) |>
+  select(year, sector, BL_n, FL_n, type)
+```
+
+### Multiplicadores de importaciones (ambos años)
+
+```{r}
+#| label: tables-impo
+#| message: false
+#| warning: false
+
+multipliers_stack |>
+  arrange(year, sector) |>
+  select(year, sector, mult_imp)
+
+```
+
+### Multiplicadores de empleo (ambos años)
+
+```{r}
+#| label: tables-empleo
+#| message: false
+#| warning: false
+
+multipliers_stack |>
+  arrange(year, sector) |>
+  select(year, sector, mult_emp)
+```
+
+## Gráficos
+
+### Gráfico 1 — BL–FL (normalizados) con flechas
+
+Para facilitar la interpretación, presentamos la evolución de los encadenamientos hacia adelante y hacia atrás normalizados ($BL_n$ y $FL_n$. El eje X puestra los encadenamientos hacia atrás y el eje Y los encadenamientos hacia adelante. Los colores distinguen entre años, el tamaño indica el efecto multiplicador sobre el emploe del sector y las flechas unen el mismo sector en los distintos años.
+
+```{r}
+#| label: fig-blfl
+#| fig-cap: "BL–FL normalizados (ARG 1995-2018). Líneas punteadas: umbrales (=1)."
+
+g_blfl <- plots$blfl
+print(g_blfl)
+```
+
+> Destaca:\
+> - *Servicios intensivos en conocimiento (IT, Telecomunicaciones, Finanzas, Servicios profesionales)*: en muchos casos se desplazaron hacia arriba/derecha → ganaron peso como nodos en la red, aumentando su irradiación hacia adelante.\
+> - *Manufacturas tradicionales (Textiles, Cuero, Calzado, Alimentos)*: tienden a perder posición relativa, moviéndose hacia abajo/izquierda, quedando más periféricas.\
+> - *Sectores estratégicos de insumos básicos (Metales, Químicos, Energía)*: se consolidan como “clave”, manteniendo BL y FL elevados.\
+> - *Servicios sociales (Educación, Salud, Adm. pública, Servicios domésticos)*: se mantienen en la esquina inferior izquierda; son grandes empleadores pero con poco efecto multiplicador en la red.
+
+### Gráfico 2 — Multiplicadores importaciones
+
+Un aspecto central en economías abiertas como la argentina es la relación entre expansión productiva y requerimientos de importaciones. Los multiplicadores de importaciones permiten cuantificar cuántos insumos externos se necesitan, de forma directa e indirecta, para sostener una unidad adicional de demanda final en cada sector. El siguiente gráfico compara estos multiplicadores en 1995 y 2018 (salvo que se cambien estos campos en la celda de configuración), mostrando hasta qué punto la estructura productiva se ha vuelto más dependiente de insumos importados a lo largo del tiempo.
+
+```{r}
+#| label: fig-mult-impo
+#| fig-cap: "Multiplicadores de importaciones"
+
+g_imp <- plots$imp
+print(g_imp)
+```
+
+El restultado es claro: **la gran mayoría de sectores aumentaron sus requerimientos de insumos importados** en 2018 respecto a 1995. Esto refleja un proceso de mayor dependencia externa de la estructura productiva del país.
+
+**Sectores con fuerte aumento** - Electrónica, Automotriz, Maquinaria y equipo, Equipo eléctrico, Químicos, Textiles y cuero, Papel e imprenta: sobresalen en el extremo superior derecho. Son ramas industriales que en 2018 exhiben multiplicadores de importaciones muy superiores. Esto sugiere que se integraron más a cadenas globales de valor o dependen más de insumos externos.\
+- Caucho y plástico, Publicaciones, Otro equipo de transporte también muestran subas notables.
+
+**Sectores con aumento moderado** - Metales básicos, Productos metálicos, Transporte aéreo: aumentan, pero en niveles intermedios. - Agro, forestal, Alimentos y bebidas: también crecieron, aunque en menor medida.
+
+**Sectores con bajo multiplicador** - Servicios domésticos, Educación, Salud, Administración pública, Inmobiliarias: permanecen en la esquina inferior izquierda. Sus multiplicadores de importación son bajos y estables, como se espera en actividades de servicios no transables.
+
+### Gráfico 3 — Multiplicadores Empleo
+
+Cuando centramos nuestra atención en la capacidad de generar empleo de cada sector observamos lo contrario.
+
+```{r}
+#| label: fig-mult-empleo
+#| fig-cap: "Multiplicadores del empleo"
+
+g_emp <- plots$emp
+print(g_emp)
+```
+
+La mayoría de los sectores se encuentran relativamente cerca de la diagonal (*ie,* las variaciones no fueron particularmente significativas), lo cual indica que la estructura de encadenamientos laborales se mantuvo relativamente estable. Aunque el efecto sea leve, podemos notar sin embargo que la mayoría de sectores disminuyó su efecto multiplicador sobre el empleo.
+
+# Apéndice técnico — API de módulos
+
+Este apéndice documenta la API expuesta por los módulos del proyecto. Las firmas corresponden a R base; los objetos de entrada/salida siguen la notación del cuerpo del informe: $Z, Y, x, A, B=(I-A)^{-1}, G=(I-B)^{-1}$.
+
+## Convenciones generales
+
+-   **Tipos y dimensiones**
+    -   Vectores columna: `numeric(q_d)` (p. ej., `x`, `f`, `y`).
+    -   Matrices cuadradas: `numeric[q_d × q_d]` (p. ej., `Z`, `A`, `B`, `D`, `G`).
+    -   Matriz demanda final: `F ∈ ℝ^{q_d × q_f}`; su agregación es `f = Y %*% rep(1, q_f)`.
+-   **Nombres de industrias**: factor/chr en `ind_labs$sector` (código) y `ind_labs$label` (etiqueta corta).
+-   **Errores**: toda función valida dimensiones y `NA`s. Ante violación, hace `stop()` con mensaje informativo.
+-   **Side effects**: sólo los módulos `io_export.R` y `io_orchestrator.R` escriben en disco.
+-   **Dependencias externas**: `dplyr`, `tidyr`, `readr`, `ggplot2`, `ggrepel`, `readxl`, `purrr`, `stringr`, `here`.
+
+------------------------------------------------------------------------
+
+## `io_utils.R`
+
+### `%||%(x, y)`
+
+Operador “o nulo”: devuelve `x` salvo que sea `NULL`, en cuyo caso `y`.
+
+### `check_square(mat, name)`
+
+Verifica que `mat` sea matriz cuadrada; `stop()` si falla.
+
+### `check_compat(Z, x)`
+
+Comprueba `nrow(Z)==ncol(Z)==length(x)`; `stop()` si no.
+
+### `get_labels(tbl_ind, col = "desc_short", q_ind)`
+
+Devuelve `tibble(sector, label)` de longitud `q_ind`.\
+**Errores:** si faltan columnas o `q_ind` no coincide con `nrow(tbl_ind)`.
+
+### `fix_labels(obj, ind_labs)`
+
+Si `obj` tiene columnas `sector`/`label`, las normaliza y agrega `label` legible.
+
+------------------------------------------------------------------------
+
+## `io_load.R`
+
+### `load_matrices(country, year, path)`
+
+Lee `{country}{year}dom.csv` y `tbl_ind.csv`.\
+**Retorna:** lista con:
+
+\- `tbl_IP`: tabla insumo–producto cruda\
+- `tbl_ind`: data.frame con catálogos de industrias.
+
+**Errores:** archivos ausentes; encoding inválido.
+
+### `load_tim_labour(country, year, path, codes, unit = "USD")`
+
+Carga coeficientes laborales (o TIM equivalente).\
+**Retorna:** lista con:\
+- `l` (empleo por sector; measure=EMPN)\
+- `rta`(remuneración al trabajo por sector, measure=LABR)\
+- `w` (salario unitario, rta/l)
+
+**Errores:** códigos no encontrados; unidades incompatibles.
+
+------------------------------------------------------------------------
+
+## `io_build.R`
+
+### `partition_MIP(tbl_IP, q_ind, q_f)`
+
+Particiona la tabla MIP cruda para extraer bloques y realiza ajustes para garantizar el cierre contable del sistema.\
+Retorna:\
+- `mats`: lista de bloques (`Z, F, M, M_F, Y, f(=f_adj), m, m_f, y(=y_adj), x)` (nombres coherentes con informe). **Errores:** dimensiones inconsistentes; totales no cuadran.
+
+### `add_intensive_coefficients(mats)`
+
+A partir de `mats$Z, mats$y, mats$x, mats$m, mats$l (opcional)` calcula:\
+- `A = Z %*% diag(1/x)`, `D = diag(1/x) %*% Z`\
+- `B = (I - A)^{-1}`, `G = (I - B)^{-1}`\
+- `a_m` (coef. de importaciones), `a_l` (coef. laborales, si se pasa `mats$l`)\
+**Retorna:** `mats` enriquecido.\
+**Errores:** singularidad de `I-A` o `I-B` (no inversibles).
+
+------------------------------------------------------------------------
+
+## `io_linkages.R`
+
+### `compute_linkages(B, G, sectors)`
+
+-   `B`: Inversa de Leontief.
+-   `G`: Matriz de Gosh.
+-   `sectors`: vector de nombres (desc_short), opcional.\
+    **Retorna:** tibble con: `sector, BL, FL, BL_n, FL_n`
+
+### `add_taxonomy(linkages, thr = 1)`
+
+-   `link_tbl`: tibble de `compute_linkages()` Clasifica en `type ∈ {Clave, Impulsor, Impulsado, Independiente}` según `thr`.\
+    **Retorna**: el mismo tibble con columna adicional `type`
+
+------------------------------------------------------------------------
+
+## `io_multipliers.R`
+
+### `get_multipliers_open(mats)`
+
+Calcula multiplicadores de empleo, de producción y de importaciones Asume que `mats` trae: `B, a_m, a_l (opcional)`\
+Si mats contiene `Z,f,m,y,x`, también chequea consistencia contable del sistema\
+**Retorna:** `list(mult_prod, mult_imp y mult_emp (o NULL), checks (o NULL))`
+
+------------------------------------------------------------------------
+
+## `io_vertical.R`
+
+### `get_vertical_open(mats, expo_col = "EXPO")`
+
+Indicadores verticalmente integrados:\
+- `imp_vi = t(a_m) %*% L` (importaciones embebidas)\
+- `emp_vi = t(a_l) %*% L` (trabajo embebido)\
+- `bc_vi` (opcional): contenido doméstico/externo en comercio.\
+**Retorna:** `tibble(sector, imp_vi, emp_vi, bc_vi)`.
+
+------------------------------------------------------------------------
+
+## `io_tables.R`
+
+### `make_stacked_tables(results)`
+
+De una lista de `build_country_year_objects(...)` arma:\
+- `linkages_stack` (con taxonomía)\
+- `multipliers_stack` - `vi_stack`\
+**Retorna:** lista con esas tablas apiladas (agrega `year` y `sector` legibles).
+
+------------------------------------------------------------------------
+
+## `io_plots.R`
+
+> Todos los *plots* son **puros**: devuelven objetos `ggplot` sin imprimir.
+
+### `set_project_theme(base_size = 12)`
+
+Tema base unificado para figuras.
+
+### `plot_compare_linkages(linkages_stack, multipliers_stack, title, subtitle = NULL)`
+
+Dispersión BL_n–FL_n min(linkages_stack$years)→max(linkages_stack$year) con flechas, tamaño ∝ `mult_emp`.\
+**Entrada necesaria:** `linkages_stack` (con `BL_n`, `FL_n`, `type`) y `multipliers_stack` (con `mult_emp`).\
+**Retorna:** `ggplot`.
+
+### `plot_compare_years(stack, value_col, xaxis_log = FALSE, yaxis_log = FALSE, title)`
+
+Dispersión (t, t’) de un indicador (`value_col`) por sector con diagonal 45°.\
+**Retorna:** `ggplot`.
+
+------------------------------------------------------------------------
+
+## `io_export.R`
+
+### `export_csv(x, path)`
+
+Guarda CSV; crea directorio si no existe.\
+**Side effect:** escribe en disco.\
+**Errores:** path inválido.
+
+### `export_plot(p, path, width = 10, height = 7, dpi = 300)`
+
+Guarda `ggplot` como imagen.\
+**Side effect:** escribe en disco.
+
+------------------------------------------------------------------------
+
+## `io_orchestrator.R`
+
+### `build_country_year_objects(country, year, paths_raw, q_ind = 45L, q_f = 9L)`
+
+Pipeline por año:\
+1. Carga (`load_matrices`, `load_tim_labour`),\
+2. Etiquetas (`get_labels`, `fix_labels`),\
+3. Partición (`partition_MIP`) + coeficientes (`add_intensive_coefficients`),\
+4. Multiplicadores (`get_multipliers_open`), vertical (`get_vertical_open`),\
+5. Encadenamientos + taxonomía (`compute_linkages`, `add_taxonomy`).\
+**Retorna:** `list(year, ind_labs, mats, mult, vert, links)`.
+
+### `build_many(country, years, paths_raw, q_ind, q_f)`
+
+Aplica `build_country_year_objects` a cada `year`.\
+**Retorna:** lista nombrada por año.
+
+### `run_orchestration(country, years, paths, q_ind = NULL, q_f = NULL, print_plots = FALSE, save_plots = TRUE)`
+
+Orquesta todo:\
+- Construye resultados,\
+- Genera y\
+**(opcional) guarda** figuras,\
+- Devuelve tablas y **plots** para uso diferido.\
+**Retorna:** `list(   results            = ...,   linkages_stack     = tibble,   multipliers_stack  = tibble,   vi_stack           = tibble,   plots = list(blfl = ggplot, imp = ggplot, emp = ggplot, vi_imp = ggplot) )`

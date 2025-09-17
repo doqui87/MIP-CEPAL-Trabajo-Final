@@ -1,0 +1,23 @@
+
+project:
+  title: "IP Final - CEPAL"
+  output-dir: "docs"
+execute-dir: project
+format:
+  html:
+    theme: cosmo
+    toc: true
+    toc-depth: 3
+    number-sections: true
+    code-fold: true
+    code-tools: true
+    embed-resources: true
+  pdf:
+    documentclass: scrreprt
+    toc: true
+    number-sections: true
+execute:
+  freeze: true
+  echo: true
+  warning: false
+  message: false

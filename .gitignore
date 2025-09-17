@@ -1,0 +1,40 @@
+# RStudio / R
+.Rproj.user/
+.Rhistory
+.RData
+.Ruserdata
+.Rapp.history
+.Rprofile.user
+
+# renv (se versiona renv.lock, no la librería)
+renv/library/
+renv/staging/
+renv/python/
+
+# Quarto/knitr caches & artefactos
+.qmd-cache/
+_cache/
+_freeze/
+.quarto/
+*.utf8.md
+*.knit.md
+
+# Datos y resultados (no versionar crudos ni outputs)
+data/raw/
+data/derived/
+results/
+figs/
+tables/
+
+# SO / editor
+.DS_Store
+Thumbs.db
+~$*
+*.swp
+*.tmp
+
+# Credenciales/env (si existieran)
+.env
+.Renviron
+
+/.quarto/
