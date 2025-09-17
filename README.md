@@ -17,4 +17,5 @@ Outputs: figuras en results/figs/, tablas en results/tables/.
 
 ## Versión freezada
 
-Alternativamente, debiera haber una versión HTML congelada en /docs/
+Alternativamente, debiera haber una versión HTML congelada en /docs/ (local)
+accesible desde https://doqui87.github.io/MIP-CEPAL-Trabajo-Final/ (cloud)
