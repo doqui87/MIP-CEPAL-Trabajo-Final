@@ -9,7 +9,7 @@
 3. Colocar ARG1995dom.csv, ARG2018dom.csv, tbl_ind.csv en data/raw/.
 4. Renderizar el informe:
 ```r
-quarto::quarto_render("report/informe_final.qmd")
+quarto::quarto_render("informe_final.qmd")
 ```
 
 Outputs: figuras en results/figs/, tablas en results/tables/.
